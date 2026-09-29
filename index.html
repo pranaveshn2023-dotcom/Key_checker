@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>API key checker</title>
+<style>
+:root{--bg:#f6f7f9;--fg:#15181e;--mut:#6b7280;--card:#fff;--line:#dfe3e8;--ok:#0f7b45;--bad:#c0322b;--warn:#a86400;--ac:#2743d6}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1116;--fg:#eceff4;--mut:#8b93a1;--card:#171a21;--line:#2a2f3a;--ok:#4cc38a;--bad:#ff7a70;--warn:#f0b04a;--ac:#8fa2ff}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,sans-serif}
+main{max-width:640px;margin:0 auto;padding:40px 20px}
+h1{font-size:1.6rem;margin:0 0 4px}p.sub{color:var(--mut);margin:0 0 24px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px}
+label{font-size:.85rem;color:var(--mut)}
+select,input{width:100%;font:inherit;color:inherit;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:4px 0 14px}
+input{font-family:ui-monospace,Menlo,monospace}
+select:focus,input:focus{outline:2px solid var(--ac);outline-offset:1px}
+#live{min-height:26px;font-weight:600}
+.valid{color:var(--ok)}.invalid{color:var(--bad)}.restricted,.error{color:var(--warn)}
+ul{list-style:none;margin:20px 0 0;padding:0}
+li{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--line);font-size:.92rem}
+li code{font-family:ui-monospace,Menlo,monospace;color:var(--mut)}
+.note{color:var(--mut);font-size:.82rem;margin-top:18px}
+</style></head><body><main>
+<h1>API key checker</h1>
+<p class="sub">Paste a key. It is tested against the provider's live API and the result shows immediately.</p>
+<div class="box">
+  <label for="prov">Provider</label>
+  <select id="prov"><option value="auto">Auto-detect from key</option><option value="custom">Custom API (any provider)</option></select>
+  <div id="cust" hidden>
+    <label for="curl">Check URL (https, a GET endpoint that needs the key; use {key} if it goes in the path)</label>
+    <input id="curl" placeholder="https://api.example.com/v1/me" style="font-family:inherit">
+    <label for="cauth">How the key is sent</label>
+    <select id="cauth"><option value="bearer">Authorization: Bearer</option><option value="header">Custom header</option><option value="query">Query parameter</option><option value="basic">Basic auth (user:pass)</option><option value="path">Inside the URL path</option></select>
+    <input id="cname" placeholder="Header or parameter name, e.g. X-Api-Key" hidden style="font-family:inherit">
+  </div>
+  <label for="key">API key</label>
+  <input id="key" type="password" autocomplete="off" spellcheck="false" placeholder="Paste key here">
+  <div id="live" aria-live="polite"></div>
+</div>
+<ul id="hist"></ul>
+<p class="note">Keys are sent to this local server, used for a single request to the provider, and discarded. Nothing is saved or logged. The input clears after each check; the history shows only a masked preview and lives in this tab's memory.</p>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+let names={},PREFIX=[];
+fetch("/api/providers").then(r=>r.json()).then(l=>{l.forEach(p=>{names[p.id]=p.name;if(p.prefix)PREFIX.push([new RegExp(p.prefix),p.id]);$("prov").add(new Option(p.name,p.id))});PREFIX.push([/^sk-/,"openai"])});
+const mask=k=>k.length<=10?"••••":k.slice(0,4)+"…"+k.slice(-3);
+let timer,busy=0;
+async function check(){
+  const key=$("key").value.trim(); if(key.length<8)return;
+  let prov=$("prov").value;
+  let custom;
+  if(prov==="custom"){const a=$("cauth").value,n=$("cname").value.trim(),u=$("curl").value.trim();
+    if(!u){$("live").className="error";$("live").textContent="Enter the check URL first.";return}
+    custom={url:u,auth:(a==="header"||a==="query")?a+":"+n:a};names.custom="Custom API"}
+  if(prov==="auto"){const m=PREFIX.find(([re])=>re.test(key));
+    if(!m){$("live").className="error";$("live").textContent="Can't detect the provider. Pick it from the list.";return}
+    prov=m[1]}
+  $("live").className="";$("live").textContent="Checking…";
+  const id=++busy;
+  let out;
+  try{out=await (await fetch("/api/validate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({provider:prov,key,custom})})).json()}
+  catch{out={status:"error",message:"Server not reachable"}}
+  if(id!==busy)return;
+  const icon=out.status==="valid"?"✔":out.status==="invalid"?"✖":"!";
+  $("live").className=out.status;$("live").textContent=`${icon} ${names[prov]||prov}: ${out.message}`;
+  const li=document.createElement("li");
+  li.innerHTML=`<code></code><span class="${out.status}"></span>`;
+  li.children[0].textContent=`${names[prov]||prov} ${mask(key)}`;
+  li.children[1].textContent=out.status==="valid"?"Valid":out.status==="invalid"?"Invalid":out.status==="restricted"?"Restricted":"Error";
+  $("hist").prepend(li);
+  $("key").value="";
+}
+const sync=()=>{$("cust").hidden=$("prov").value!=="custom";$("cname").hidden=!["header","query"].includes($("cauth").value)};
+$("prov").onchange=$("cauth").onchange=sync;
+$("key").addEventListener("input",()=>{clearTimeout(timer);timer=setTimeout(check,400)});
+$("key").addEventListener("paste",()=>{clearTimeout(timer);timer=setTimeout(check,50)});
+</script></body></html>
