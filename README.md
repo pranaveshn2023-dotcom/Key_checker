@@ -1,37 +1,37 @@
-# API Key Checker v2
+# API Key Checker
 
-A zero-log API key validator. Keys are sent only to this server, used for a single request to the provider, then discarded. Nothing is stored or logged.
+A zero-log API key validator. Keys are sent to a serverless function, used for a single request to the provider, then discarded. Nothing is stored or logged.
 
-## Requirements
+Supports 45+ providers including OpenAI, Anthropic, Google Gemini, GitHub, Stripe, Slack, and more.
 
-- Node 18+
+## Deploy to Netlify
 
-## Run locally
+1. Push this repo to GitHub
+2. Go to [app.netlify.com](https://app.netlify.com) → **Add new site** → **Import an existing project**
+3. Connect your GitHub repo
+4. Click **Deploy site** — done ✅
 
-```bash
-npm start
-# open http://localhost:3000
+## Project Structure
+
+```
+├── netlify.toml              ← Netlify config (redirects + build settings)
+├── public/
+│   └── index.html            ← Frontend UI (served by Netlify CDN)
+├── netlify/functions/
+│   ├── providers.js          ← GET /api/providers (serverless)
+│   └── validate.js           ← POST /api/validate (serverless)
+├── package.json
+└── .gitignore
 ```
 
-## What's new in v2
+## Features
 
-- ✨ Modern dark/light UI with animations and hover effects
+- ✨ Modern dark/light UI with glassmorphism and animations
 - 🔍 Password visibility toggle
 - 🔄 Auto-detect provider from key prefix
 - 📋 History with masked key previews
-- 🐳 Zero-dependency, single `server.js`
-- 🔒 No keys stored — one request, then discarded
-
-## Adding providers
-
-Edit `providers.json` — no code changes needed. Each entry needs:
-- `id` — unique identifier
-- `name` — display name
-- `url` — GET endpoint to test
-- `auth` — `bearer`, `header:X-Key`, `query:param`, `basic`, `prefix:X-Key`, `path`, or `basic-user:username`
-- `prefix` — (optional) regex to auto-detect key format
-- `headers` — (optional) extra HTTP headers
-- `expect` / `reject` — (optional) JSON response validation
+- 🔒 Zero-log — keys are never stored
+- ⚡ Serverless — runs on Netlify Functions (no server needed)
 
 ## License
 

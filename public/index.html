@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Key Checker</title>
+    <style>
+        :root {
+            /* Dark Theme Colors */
+            --bg-color: #0a0a0f;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --card-bg: rgba(20, 20, 28, 0.6);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --input-bg: rgba(0, 0, 0, 0.3);
+            --input-border: rgba(255, 255, 255, 0.1);
+            --input-focus: rgba(139, 92, 246, 0.5);
+            --btn-bg: linear-gradient(135deg, #8b5cf6, #3b82f6);
+            --btn-hover-bg: linear-gradient(135deg, #7c3aed, #2563eb);
+            --btn-text: #ffffff;
+            
+            /* Status Colors */
+            --status-valid-bg: rgba(16, 185, 129, 0.15);
+            --status-valid-text: #34d399;
+            --status-invalid-bg: rgba(239, 68, 68, 0.15);
+            --status-invalid-text: #f87171;
+            --status-restricted-bg: rgba(245, 158, 11, 0.15);
+            --status-restricted-text: #fbbf24;
+            --status-error-bg: rgba(59, 130, 246, 0.15);
+            --status-error-text: #60a5fa;
+
+            --bg-gradient: radial-gradient(circle at top right, rgba(139, 92, 246, 0.15), transparent 40%),
+                           radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.15), transparent 40%);
+        }
+
+        [data-theme="light"] {
+            --bg-color: #f8fafc;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --card-bg: rgba(255, 255, 255, 0.7);
+            --card-border: rgba(0, 0, 0, 0.08);
+            --input-bg: rgba(255, 255, 255, 0.5);
+            --input-border: rgba(0, 0, 0, 0.1);
+            --input-focus: rgba(139, 92, 246, 0.4);
+            
+            --status-valid-bg: rgba(16, 185, 129, 0.2);
+            --status-valid-text: #059669;
+            --status-invalid-bg: rgba(239, 68, 68, 0.2);
+            --status-invalid-text: #dc2626;
+            --status-restricted-bg: rgba(245, 158, 11, 0.2);
+            --status-restricted-text: #d97706;
+            --status-error-bg: rgba(59, 130, 246, 0.2);
+            --status-error-text: #2563eb;
+
+            --bg-gradient: radial-gradient(circle at top right, rgba(139, 92, 246, 0.1), transparent 40%),
+                           radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.1), transparent 40%);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: var(--bg-gradient);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated background mesh */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: 
+                radial-gradient(circle at 15% 50%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.08) 0%, transparent 50%);
+            z-index: -1;
+            animation: pulse 10s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(1.1); opacity: 1; }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 560px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Glassmorphism Card */
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 1.25rem;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+
+        .title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .title svg {
+            width: 28px;
+            height: 28px;
+            fill: url(#gradient-fill);
+        }
+
+        /* Form Elements */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        input, select {
+            width: 100%;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-main);
+            padding: 0.875rem 1rem;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.2s ease;
+            appearance: none;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--input-focus);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+        }
+
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1em;
+            padding-right: 2.5rem;
+        }
+
+        .detect-badge {
+            position: absolute;
+            right: 3rem;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 1rem;
+            background: rgba(139, 92, 246, 0.2);
+            color: #a78bfa;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+        }
+
+        [data-theme="light"] .detect-badge {
+            color: #7c3aed;
+        }
+
+        .detect-badge.show {
+            opacity: 1;
+        }
+
+        .icon-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .icon-btn:hover {
+            background: rgba(156, 163, 175, 0.1);
+            color: var(--text-main);
+        }
+
+        .input-action {
+            position: absolute;
+            right: 0.5rem;
+        }
+
+        .primary-btn {
+            width: 100%;
+            background: var(--btn-bg);
+            color: var(--btn-text);
+            border: none;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .primary-btn:hover {
+            background: var(--btn-hover-bg);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        .primary-btn:active {
+            transform: translateY(1px);
+        }
+
+        .primary-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loader {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .btn-text.loading {
+            opacity: 0;
+        }
+        
+        .loader.loading {
+            display: block;
+            position: absolute;
+        }
+
+        /* Custom Provider Section */
+        #customProviderConfig {
+            display: none;
+            animation: slideDown 0.3s ease forwards;
+            padding: 1rem;
+            background: rgba(0,0,0,0.1);
+            border-radius: 0.75rem;
+            margin-top: -0.5rem;
+            margin-bottom: 1.25rem;
+            border: 1px solid var(--card-border);
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Result Section */
+        #resultCard {
+            display: none;
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            margin-top: 1.5rem;
+            border: 1px solid var(--card-border);
+            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .status-badge {
+            padding: 0.35rem 0.75rem;
+            border-radius: 2rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: capitalize;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .status-badge::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .status-valid { background: var(--status-valid-bg); color: var(--status-valid-text); }
+        .status-valid::before { background: var(--status-valid-text); }
+        
+        .status-invalid { background: var(--status-invalid-bg); color: var(--status-invalid-text); }
+        .status-invalid::before { background: var(--status-invalid-text); }
+        
+        .status-restricted { background: var(--status-restricted-bg); color: var(--status-restricted-text); }
+        .status-restricted::before { background: var(--status-restricted-text); }
+        
+        .status-error { background: var(--status-error-bg); color: var(--status-error-text); }
+        .status-error::before { background: var(--status-error-text); }
+
+        .http-code {
+            font-family: monospace;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            background: rgba(0,0,0,0.2);
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.25rem;
+        }
+
+        .result-msg {
+            color: var(--text-main);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* History Section */
+        .history-section {
+            margin-top: 1rem;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding: 0 0.5rem;
+        }
+
+        .history-header h3 {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .clear-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .clear-btn:hover { color: var(--status-invalid-text); }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background: rgba(0,0,0,0.1);
+            border-radius: 0.5rem;
+            border: 1px solid transparent;
+            transition: border-color 0.2s;
+            cursor: pointer;
+        }
+
+        .history-item:hover {
+            border-color: var(--card-border);
+            background: rgba(255,255,255,0.02);
+        }
+
+        .history-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .history-provider {
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .history-key {
+            font-family: monospace;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .history-status {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 2rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        footer svg {
+            width: 16px;
+            height: 16px;
+            opacity: 0.7;
+        }
+
+        /* Toasts */
+        .toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            z-index: 50;
+        }
+
+        .toast {
+            background: var(--card-bg);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .toast.hiding {
+            animation: toastOut 0.3s ease forwards;
+        }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes toastOut {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(20px); }
+        }
+
+        /* Utilities */
+        .hidden { display: none !important; }
+        
+        /* SVGs */
+        svg {
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+        }
+    </style>
+</head>
+<body>
+
+    <svg width="0" height="0" class="hidden">
+        <linearGradient id="gradient-fill" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop stop-color="#8b5cf6" offset="0%" />
+            <stop stop-color="#3b82f6" offset="100%" />
+        </linearGradient>
+    </svg>
+
+    <div class="container">
+        <main class="glass-card">
+            <header>
+                <div class="title">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    API Key Checker
+                </div>
+                <button id="themeToggle" class="icon-btn" aria-label="Toggle theme">
+                    <svg id="moonIcon" viewBox="0 0 24 24" width="20" height="20"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    <svg id="sunIcon" class="hidden" viewBox="0 0 24 24" width="20" height="20"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                </button>
+            </header>
+
+            <form id="checkForm">
+                <div class="form-group">
+                    <label for="provider">Provider</label>
+                    <select id="provider" required>
+                        <option value="" disabled selected>Select or auto-detect provider...</option>
+                        <!-- Options injected via JS -->
+                        <option value="custom">Custom Provider...</option>
+                    </select>
+                </div>
+
+                <div id="customProviderConfig">
+                    <div class="form-group">
+                        <label for="customUrl">Validation URL</label>
+                        <input type="url" id="customUrl" placeholder="https://api.example.com/v1/me">
+                    </div>
+                    <div class="form-group">
+                        <label for="customAuth">Auth Header</label>
+                        <select id="customAuth">
+                            <option value="bearer">Bearer {key}</option>
+                            <option value="basic">Basic {key}</option>
+                            <option value="header:x-api-key">x-api-key: {key}</option>
+                            <option value="query:key">Query param ?key={key}</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="apiKey">API Key</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="apiKey" placeholder="Paste your API key here..." required autocomplete="off" spellcheck="false">
+                        <span id="detectBadge" class="detect-badge">OpenAI</span>
+                        <button type="button" id="toggleVisibility" class="icon-btn input-action" aria-label="Toggle visibility">
+                            <svg id="eyeIcon" viewBox="0 0 24 24" width="18" height="18"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            <svg id="eyeOffIcon" class="hidden" viewBox="0 0 24 24" width="18" height="18"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" id="submitBtn" class="primary-btn">
+                    <span class="btn-text">Validate Key</span>
+                    <div class="loader"></div>
+                </button>
+            </form>
+
+            <div id="resultCard">
+                <div class="result-header">
+                    <div id="statusBadge" class="status-badge status-valid">Valid</div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <span id="httpCode" class="http-code">200 OK</span>
+                        <button id="copyResultBtn" class="icon-btn" style="padding: 0.25rem;" aria-label="Copy result">
+                            <svg viewBox="0 0 24 24" width="16" height="16"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                <p id="resultMsg" class="result-msg">Key is active and ready to use.</p>
+            </div>
+        </main>
+
+        <section class="history-section hidden" id="historySection">
+            <div class="history-header">
+                <h3>Recent Checks</h3>
+                <button id="clearHistoryBtn" class="clear-btn">Clear</button>
+            </div>
+            <div class="history-list" id="historyList">
+                <!-- Items injected via JS -->
+            </div>
+        </section>
+
+        <footer>
+            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            Zero-log. Keys are never stored or logged on our servers.
+        </footer>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // --- State ---
+        let providers = [];
+        let history = JSON.parse(localStorage.getItem('apiKeyHistory') || '[]');
+        const MAX_HISTORY = 10;
+
+        // --- DOM Elements ---
+        const html = document.documentElement;
+        const themeToggle = document.getElementById('themeToggle');
+        const sunIcon = document.getElementById('sunIcon');
+        const moonIcon = document.getElementById('moonIcon');
+        
+        const form = document.getElementById('checkForm');
+        const providerSelect = document.getElementById('provider');
+        const apiKeyInput = document.getElementById('apiKey');
+        const customProviderConfig = document.getElementById('customProviderConfig');
+        const detectBadge = document.getElementById('detectBadge');
+        
+        const toggleVisibilityBtn = document.getElementById('toggleVisibility');
+        const eyeIcon = document.getElementById('eyeIcon');
+        const eyeOffIcon = document.getElementById('eyeOffIcon');
+        
+        const submitBtn = document.getElementById('submitBtn');
+        const btnText = submitBtn.querySelector('.btn-text');
+        const loader = submitBtn.querySelector('.loader');
+        
+        const resultCard = document.getElementById('resultCard');
+        const statusBadge = document.getElementById('statusBadge');
+        const httpCode = document.getElementById('httpCode');
+        const resultMsg = document.getElementById('resultMsg');
+        const copyResultBtn = document.getElementById('copyResultBtn');
+        
+        const historySection = document.getElementById('historySection');
+        const historyList = document.getElementById('historyList');
+        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+        const toastContainer = document.getElementById('toastContainer');
+
+        // --- Initialization ---
+        async function init() {
+            // Theme setup
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            setTheme(savedTheme);
+
+            // Fetch providers
+            try {
+                const res = await fetch('/api/providers');
+                if (res.ok) {
+                    providers = await res.json();
+                }
+            } catch (e) {
+                console.warn('Could not fetch providers — is the server running?');
+            }
+
+            populateProviders();
+            renderHistory();
+        }
+
+        // --- Core Functions ---
+        function setTheme(theme) {
+            html.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            if (theme === 'dark') {
+                moonIcon.classList.remove('hidden');
+                sunIcon.classList.add('hidden');
+            } else {
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            }
+        }
+
+        function populateProviders() {
+            // Keep the first default option
+            const defaultOpt = providerSelect.options[0];
+            const customOpt = providerSelect.querySelector('option[value="custom"]');
+            
+            providerSelect.innerHTML = '';
+            providerSelect.appendChild(defaultOpt);
+            
+            providers.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.textContent = p.name;
+                providerSelect.appendChild(opt);
+            });
+            
+            providerSelect.appendChild(customOpt);
+        }
+
+        function maskKey(key) {
+            if (!key) return '';
+            if (key.length <= 8) return '***';
+            return key.substring(0, 4) + '...' + key.substring(key.length - 4);
+        }
+
+        function renderHistory() {
+            if (history.length === 0) {
+                historySection.classList.add('hidden');
+                return;
+            }
+            historySection.classList.remove('hidden');
+            historyList.innerHTML = '';
+            
+            history.forEach((item, index) => {
+                const el = document.createElement('div');
+                el.className = 'history-item';
+                
+                // Determine color
+                let colorVar = '--status-valid-text';
+                if(item.status === 'invalid') colorVar = '--status-invalid-text';
+                else if(item.status === 'restricted') colorVar = '--status-restricted-text';
+                else if(item.status === 'error') colorVar = '--status-error-text';
+
+                el.innerHTML = `
+                    <div class="history-info">
+                        <span class="history-provider">${item.providerName}</span>
+                        <span class="history-key">${maskKey(item.key)}</span>
+                    </div>
+                    <div class="history-status" style="background-color: var(${colorVar})" title="${item.status}"></div>
+                `;
+                
+                el.addEventListener('click', () => {
+                    providerSelect.value = item.providerId;
+                    apiKeyInput.value = item.key;
+                    providerSelect.dispatchEvent(new Event('change'));
+                });
+                
+                historyList.appendChild(el);
+            });
+        }
+
+        function addToHistory(record) {
+            history.unshift(record);
+            if (history.length > MAX_HISTORY) history.pop();
+            localStorage.setItem('apiKeyHistory', JSON.stringify(history));
+            renderHistory();
+        }
+
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = msg;
+            toastContainer.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('hiding');
+                toast.addEventListener('animationend', () => toast.remove());
+            }, 3000);
+        }
+
+        // --- Event Listeners ---
+        themeToggle.addEventListener('click', () => {
+            const cur = html.getAttribute('data-theme');
+            setTheme(cur === 'dark' ? 'light' : 'dark');
+        });
+
+        toggleVisibilityBtn.addEventListener('click', () => {
+            if (apiKeyInput.type === 'password') {
+                apiKeyInput.type = 'text';
+                eyeIcon.classList.add('hidden');
+                eyeOffIcon.classList.remove('hidden');
+            } else {
+                apiKeyInput.type = 'password';
+                eyeOffIcon.classList.add('hidden');
+                eyeIcon.classList.remove('hidden');
+            }
+        });
+
+        providerSelect.addEventListener('change', () => {
+            if (providerSelect.value === 'custom') {
+                customProviderConfig.style.display = 'block';
+                document.getElementById('customUrl').required = true;
+            } else {
+                customProviderConfig.style.display = 'none';
+                document.getElementById('customUrl').required = false;
+            }
+            resultCard.style.display = 'none';
+        });
+
+        apiKeyInput.addEventListener('input', (e) => {
+            const val = e.target.value.trim();
+            if (!val) {
+                detectBadge.classList.remove('show');
+                return;
+            }
+
+            // Auto-detect
+            let detected = null;
+            for (const p of providers) {
+                if (p.prefix) {
+                    try {
+                        const regex = new RegExp(p.prefix);
+                        if (regex.test(val)) {
+                            detected = p;
+                            break;
+                        }
+                    } catch (err) {} // ignore invalid regex
+                }
+            }
+
+            if (detected) {
+                detectBadge.textContent = detected.name;
+                detectBadge.classList.add('show');
+                if (providerSelect.value !== 'custom') {
+                    providerSelect.value = detected.id;
+                    providerSelect.dispatchEvent(new Event('change'));
+                }
+            } else {
+                detectBadge.classList.remove('show');
+            }
+            resultCard.style.display = 'none';
+        });
+
+        clearHistoryBtn.addEventListener('click', () => {
+            history = [];
+            localStorage.removeItem('apiKeyHistory');
+            renderHistory();
+            showToast('History cleared');
+        });
+
+        copyResultBtn.addEventListener('click', () => {
+            const text = `${statusBadge.textContent} - ${httpCode.textContent}\n${resultMsg.textContent}`;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Result copied to clipboard');
+            });
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const providerId = providerSelect.value;
+            const key = apiKeyInput.value.trim();
+            
+            if (!providerId || !key) return;
+
+            // UI Loading state
+            submitBtn.disabled = true;
+            btnText.classList.add('loading');
+            loader.classList.add('loading');
+            resultCard.style.display = 'none';
+
+            let payload = { provider: providerId, key };
+            
+            if (providerId === 'custom') {
+                payload.custom = {
+                    url: document.getElementById('customUrl').value.trim(),
+                    auth: document.getElementById('customAuth').value
+                };
+            }
+
+            let result;
+            try {
+                const res = await fetch('/api/validate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                result = await res.json();
+            } catch (err) {
+                result = {
+                    status: 'error',
+                    code: 0,
+                    message: 'Cannot reach the server. Make sure the app is deployed on a Node.js host (not GitHub Pages).'
+                };
+            }
+
+            // Reset loading state
+            submitBtn.disabled = false;
+            btnText.classList.remove('loading');
+            loader.classList.remove('loading');
+
+            // Show result
+            resultCard.style.display = 'block';
+            
+            // Apply status styling
+            statusBadge.className = `status-badge status-${result.status}`;
+            statusBadge.textContent = result.status;
+            
+            httpCode.textContent = result.code ? (result.code + (result.code === 200 ? ' OK' : '')) : 'ERR';
+            resultMsg.textContent = result.message;
+
+            // Save to history
+            const pName = providerId === 'custom' ? 'Custom' : (providers.find(p => p.id === providerId)?.name || providerId);
+            addToHistory({
+                providerId,
+                providerName: pName,
+                key: key,
+                status: result.status,
+                timestamp: Date.now()
+            });
+        });
+
+        // Start
+        init();
+    </script>
+</body>
+</html>
