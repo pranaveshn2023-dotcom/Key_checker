@@ -4,12 +4,6 @@ A zero-log API key validator. Keys are sent to a serverless function, used for a
 
 Supports 45+ providers including OpenAI, Anthropic, Google Gemini, GitHub, Stripe, Slack, and more.
 
-## Deploy to Netlify
-
-1. Push this repo to GitHub
-2. Go to [app.netlify.com](https://app.netlify.com) → **Add new site** → **Import an existing project**
-3. Connect your GitHub repo
-4. Click **Deploy site** — done ✅
 
 ## Project Structure
 

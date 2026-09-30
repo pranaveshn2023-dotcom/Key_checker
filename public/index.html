@@ -2,910 +2,637 @@
 <html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>API Key Checker</title>
+    <meta name="description" content="Zero-log API key validator. Validate keys for 45+ providers instantly. Nothing stored.">
+    <meta name="theme-color" content="#7c5cfc" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#7c5cfc" media="(prefers-color-scheme: light)">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Key Checker">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icons/icon-512.jpg">
+    <meta property="og:title" content="API Key Checker">
+    <meta property="og:description" content="Zero-log API key validator for 45+ providers">
+    <meta property="og:image" content="/icons/icon-512.jpg">
     <style>
         :root {
-            /* Dark Theme Colors */
-            --bg-color: #0a0a0f;
-            --text-main: #f3f4f6;
-            --text-muted: #9ca3af;
-            --card-bg: rgba(20, 20, 28, 0.6);
-            --card-border: rgba(255, 255, 255, 0.08);
-            --input-bg: rgba(0, 0, 0, 0.3);
-            --input-border: rgba(255, 255, 255, 0.1);
-            --input-focus: rgba(139, 92, 246, 0.5);
-            --btn-bg: linear-gradient(135deg, #8b5cf6, #3b82f6);
-            --btn-hover-bg: linear-gradient(135deg, #7c3aed, #2563eb);
-            --btn-text: #ffffff;
-            
-            /* Status Colors */
-            --status-valid-bg: rgba(16, 185, 129, 0.15);
-            --status-valid-text: #34d399;
-            --status-invalid-bg: rgba(239, 68, 68, 0.15);
-            --status-invalid-text: #f87171;
-            --status-restricted-bg: rgba(245, 158, 11, 0.15);
-            --status-restricted-text: #fbbf24;
-            --status-error-bg: rgba(59, 130, 246, 0.15);
-            --status-error-text: #60a5fa;
-
-            --bg-gradient: radial-gradient(circle at top right, rgba(139, 92, 246, 0.15), transparent 40%),
-                           radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.15), transparent 40%);
+            --bg: #06060b;
+            --bg-card: rgba(15, 15, 22, 0.85);
+            --bg-input: rgba(255,255,255,0.04);
+            --bg-dropdown: rgba(18, 18, 28, 0.98);
+            --border: rgba(255,255,255,0.07);
+            --border-focus: #7c5cfc;
+            --text: #e8eaed;
+            --text-dim: #7a7f8a;
+            --text-faint: #4a4e57;
+            --accent: #7c5cfc;
+            --accent2: #38bdf8;
+            --valid: #22c55e;
+            --invalid: #ef4444;
+            --restricted: #f59e0b;
+            --info: #3b82f6;
+            --glow: rgba(124,92,252,0.12);
         }
-
         [data-theme="light"] {
-            --bg-color: #f8fafc;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --card-bg: rgba(255, 255, 255, 0.7);
-            --card-border: rgba(0, 0, 0, 0.08);
-            --input-bg: rgba(255, 255, 255, 0.5);
-            --input-border: rgba(0, 0, 0, 0.1);
-            --input-focus: rgba(139, 92, 246, 0.4);
-            
-            --status-valid-bg: rgba(16, 185, 129, 0.2);
-            --status-valid-text: #059669;
-            --status-invalid-bg: rgba(239, 68, 68, 0.2);
-            --status-invalid-text: #dc2626;
-            --status-restricted-bg: rgba(245, 158, 11, 0.2);
-            --status-restricted-text: #d97706;
-            --status-error-bg: rgba(59, 130, 246, 0.2);
-            --status-error-text: #2563eb;
+            --bg: #f5f5f7;
+            --bg-card: rgba(255,255,255,0.82);
+            --bg-input: rgba(0,0,0,0.03);
+            --bg-dropdown: rgba(255,255,255,0.98);
+            --border: rgba(0,0,0,0.08);
+            --border-focus: #7c5cfc;
+            --text: #1a1a2e;
+            --text-dim: #6b7280;
+            --text-faint: #9ca3af;
+            --accent: #7c5cfc;
+            --accent2: #0ea5e9;
+            --valid: #16a34a;
+            --invalid: #dc2626;
+            --restricted: #d97706;
+            --info: #2563eb;
+            --glow: rgba(124,92,252,0.08);
+        }
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{
+            font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,sans-serif;
+            background:var(--bg);color:var(--text);
+            min-height:100vh;display:flex;align-items:center;justify-content:center;
+            padding:1.5rem;
+            transition:background .35s,color .35s;
+        }
+        body::before{
+            content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+            background:
+                radial-gradient(ellipse 70% 50% at 20% 20%, rgba(124,92,252,.08), transparent),
+                radial-gradient(ellipse 60% 40% at 80% 75%, rgba(56,189,248,.06), transparent);
+            animation:drift 20s ease-in-out infinite alternate;
+        }
+        @keyframes drift{0%{opacity:.7;transform:scale(1)}100%{opacity:1;transform:scale(1.05)}}
 
-            --bg-gradient: radial-gradient(circle at top right, rgba(139, 92, 246, 0.1), transparent 40%),
-                           radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.1), transparent 40%);
+        .app{width:100%;max-width:520px;position:relative;z-index:1;display:flex;flex-direction:column;gap:1rem}
+
+        /* Card */
+        .card{
+            background:var(--bg-card);border:1px solid var(--border);
+            border-radius:1rem;padding:1.75rem;
+            backdrop-filter:blur(24px) saturate(1.4);-webkit-backdrop-filter:blur(24px) saturate(1.4);
+            box-shadow:0 1px 2px rgba(0,0,0,.08),0 8px 32px rgba(0,0,0,.08);
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        /* Header */
+        .hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+        .logo{display:flex;align-items:center;gap:.6rem;font-size:1.25rem;font-weight:700;letter-spacing:-.02em}
+        .logo svg{width:22px;height:22px;stroke:var(--accent);fill:none}
+        .theme-btn{
+            background:var(--bg-input);border:1px solid var(--border);
+            color:var(--text-dim);width:34px;height:34px;border-radius:.5rem;
+            display:flex;align-items:center;justify-content:center;cursor:pointer;
+            transition:all .2s;
+        }
+        .theme-btn:hover{color:var(--text);border-color:var(--border-focus);background:var(--glow)}
+        .theme-btn svg{width:16px;height:16px}
+
+        /* Labels */
+        .lbl{font-size:.8rem;font-weight:500;color:var(--text-dim);margin-bottom:.4rem;display:block}
+
+        /* Custom Dropdown */
+        .dropdown{position:relative;margin-bottom:1rem}
+        .dd-trigger{
+            width:100%;display:flex;align-items:center;justify-content:space-between;
+            background:var(--bg-input);border:1px solid var(--border);
+            color:var(--text);padding:.7rem .85rem;border-radius:.6rem;
+            font-size:.9rem;cursor:pointer;transition:all .2s;user-select:none;
+        }
+        .dd-trigger:hover{border-color:rgba(124,92,252,.3)}
+        .dd-trigger.open{border-color:var(--border-focus);box-shadow:0 0 0 3px var(--glow)}
+        .dd-trigger .chevron{width:16px;height:16px;color:var(--text-faint);transition:transform .2s}
+        .dd-trigger.open .chevron{transform:rotate(180deg)}
+        .dd-trigger .selected-text{flex:1;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .dd-trigger .placeholder{color:var(--text-faint)}
+
+        .dd-menu{
+            position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:50;
+            background:var(--bg-dropdown);border:1px solid var(--border);
+            border-radius:.6rem;padding:.35rem;
+            box-shadow:0 12px 40px rgba(0,0,0,.25);
+            backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+            max-height:260px;display:none;flex-direction:column;
+            animation:menuIn .18s ease;
+        }
+        .dd-menu.show{display:flex}
+        @keyframes menuIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+
+        .dd-search{
+            background:var(--bg-input);border:1px solid var(--border);
+            color:var(--text);padding:.5rem .7rem;border-radius:.4rem;
+            font-size:.85rem;outline:none;margin-bottom:.35rem;width:100%;
+            transition:border-color .2s;
+        }
+        .dd-search:focus{border-color:var(--border-focus)}
+        .dd-search::placeholder{color:var(--text-faint)}
+
+        .dd-list{overflow-y:auto;flex:1;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+        .dd-list::-webkit-scrollbar{width:4px}
+        .dd-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+
+        .dd-item{
+            padding:.55rem .7rem;border-radius:.4rem;font-size:.875rem;
+            cursor:pointer;transition:all .12s;color:var(--text);
+            display:flex;align-items:center;gap:.5rem;
+        }
+        .dd-item:hover{background:var(--glow);color:var(--accent)}
+        .dd-item.active{background:rgba(124,92,252,.12);color:var(--accent);font-weight:500}
+        .dd-item .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);opacity:.5;flex-shrink:0}
+        .dd-item.active .dot{opacity:1}
+        .dd-item.hidden{display:none}
+        .dd-empty{padding:.7rem;text-align:center;color:var(--text-faint);font-size:.85rem}
+
+        .dd-divider{
+            padding:.45rem .7rem .25rem;font-size:.7rem;font-weight:600;
+            text-transform:uppercase;letter-spacing:.05em;color:var(--text-faint);
         }
 
-        body {
-            background-color: var(--bg-color);
-            background-image: var(--bg-gradient);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem 1rem;
-            transition: background-color 0.3s ease, color 0.3s ease;
-            position: relative;
-            overflow-x: hidden;
+        /* Input */
+        .input-group{position:relative;margin-bottom:1rem}
+        .input-group input{
+            width:100%;background:var(--bg-input);border:1px solid var(--border);
+            color:var(--text);padding:.7rem .85rem;padding-right:5.5rem;border-radius:.6rem;
+            font-size:.9rem;outline:none;transition:all .2s;font-family:monospace;
         }
-
-        /* Animated background mesh */
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: 
-                radial-gradient(circle at 15% 50%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.08) 0%, transparent 50%);
-            z-index: -1;
-            animation: pulse 10s infinite alternate;
+        .input-group input:focus{border-color:var(--border-focus);box-shadow:0 0 0 3px var(--glow)}
+        .input-group input::placeholder{color:var(--text-faint);font-family:-apple-system,BlinkMacSystemFont,sans-serif}
+        .input-actions{position:absolute;right:.5rem;top:50%;transform:translateY(-50%);display:flex;gap:.25rem;align-items:center}
+        .detect-pill{
+            font-size:.65rem;padding:.15rem .45rem;border-radius:1rem;
+            background:rgba(124,92,252,.15);color:var(--accent);
+            opacity:0;transition:opacity .2s;pointer-events:none;font-weight:600;white-space:nowrap;
         }
-
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 0.8; }
-            100% { transform: scale(1.1); opacity: 1; }
+        .detect-pill.show{opacity:1}
+        .ico-btn{
+            background:none;border:none;color:var(--text-faint);cursor:pointer;
+            padding:4px;border-radius:4px;display:flex;transition:color .15s;
         }
+        .ico-btn:hover{color:var(--text)}
+        .ico-btn svg{width:16px;height:16px}
 
-        .container {
-            width: 100%;
-            max-width: 560px;
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-            position: relative;
-            z-index: 1;
+        /* Custom Provider Panel */
+        .custom-panel{
+            display:none;padding:1rem;margin-bottom:1rem;
+            background:rgba(124,92,252,.03);border:1px solid rgba(124,92,252,.1);
+            border-radius:.6rem;animation:fadeIn .25s ease;
         }
-
-        /* Glassmorphism Card */
-        .glass-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--card-border);
-            border-radius: 1.25rem;
-            padding: 2rem;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        .custom-panel.show{display:block}
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        .custom-panel .row{display:flex;gap:.5rem;margin-bottom:.5rem}
+        .custom-panel .row:last-child{margin-bottom:0}
+        .custom-panel input, .custom-panel select{
+            flex:1;background:var(--bg-input);border:1px solid var(--border);
+            color:var(--text);padding:.55rem .7rem;border-radius:.4rem;font-size:.85rem;outline:none;
+            transition:border-color .2s;
         }
-
-        header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 2rem;
+        .custom-panel select{
+            appearance:none;
+            background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%237a7f8a' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+            background-repeat:no-repeat;background-position:right .5rem center;padding-right:1.8rem;
         }
+        .custom-panel input:focus,.custom-panel select:focus{border-color:var(--border-focus)}
 
-        .title {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-size: 1.5rem;
-            font-weight: 700;
-            letter-spacing: -0.02em;
+        /* Submit Button */
+        .submit-btn{
+            width:100%;padding:.75rem;border:none;border-radius:.6rem;
+            background:linear-gradient(135deg,var(--accent),var(--accent2));
+            color:#fff;font-size:.9rem;font-weight:600;cursor:pointer;
+            display:flex;align-items:center;justify-content:center;gap:.5rem;
+            transition:all .2s;position:relative;overflow:hidden;
         }
-
-        .title svg {
-            width: 28px;
-            height: 28px;
-            fill: url(#gradient-fill);
+        .submit-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(124,92,252,.3)}
+        .submit-btn:active{transform:translateY(0)}
+        .submit-btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+        .submit-btn .spinner{
+            display:none;width:18px;height:18px;
+            border:2px solid rgba(255,255,255,.3);border-top-color:#fff;
+            border-radius:50%;animation:spin .7s linear infinite;
         }
+        .submit-btn.loading .btn-label{visibility:hidden}
+        .submit-btn.loading .spinner{display:block;position:absolute}
+        @keyframes spin{to{transform:rotate(360deg)}}
 
-        /* Form Elements */
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            margin-bottom: 1.25rem;
+        /* Result */
+        .result{
+            display:none;margin-top:1rem;padding:1rem;border-radius:.6rem;
+            border:1px solid var(--border);animation:slideIn .35s cubic-bezier(.16,1,.3,1);
         }
-
-        label {
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--text-muted);
+        .result.show{display:block}
+        @keyframes slideIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+        .result-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem}
+        .badge{
+            padding:.25rem .6rem;border-radius:1rem;font-size:.78rem;font-weight:600;
+            display:inline-flex;align-items:center;gap:.35rem;
         }
+        .badge::before{content:'';width:7px;height:7px;border-radius:50%}
+        .badge-valid{background:rgba(34,197,94,.12);color:var(--valid)}.badge-valid::before{background:var(--valid)}
+        .badge-invalid{background:rgba(239,68,68,.12);color:var(--invalid)}.badge-invalid::before{background:var(--invalid)}
+        .badge-restricted{background:rgba(245,158,11,.12);color:var(--restricted)}.badge-restricted::before{background:var(--restricted)}
+        .badge-error{background:rgba(59,130,246,.12);color:var(--info)}.badge-error::before{background:var(--info)}
+        .result-meta{display:flex;align-items:center;gap:.4rem}
+        .http-tag{font-family:monospace;font-size:.75rem;color:var(--text-faint);background:var(--bg-input);padding:.15rem .4rem;border-radius:.25rem}
+        .result-msg{color:var(--text-dim);font-size:.85rem;line-height:1.5}
 
-        .input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
+        /* History */
+        .history{margin-top:.25rem}
+        .history-top{display:flex;align-items:center;justify-content:space-between;padding:0 .25rem;margin-bottom:.6rem}
+        .history-top h3{font-size:.85rem;font-weight:500;color:var(--text-dim)}
+        .clear-btn{background:none;border:none;color:var(--text-faint);font-size:.78rem;cursor:pointer;transition:color .15s}
+        .clear-btn:hover{color:var(--invalid)}
+        .h-list{display:flex;flex-direction:column;gap:.35rem}
+        .h-item{
+            display:flex;align-items:center;justify-content:space-between;
+            padding:.6rem .75rem;background:var(--bg-input);border-radius:.5rem;
+            border:1px solid transparent;transition:all .15s;cursor:pointer;
         }
-
-        input, select {
-            width: 100%;
-            background: var(--input-bg);
-            border: 1px solid var(--input-border);
-            color: var(--text-main);
-            padding: 0.875rem 1rem;
-            border-radius: 0.75rem;
-            font-size: 1rem;
-            outline: none;
-            transition: all 0.2s ease;
-            appearance: none;
-        }
-
-        input:focus, select:focus {
-            border-color: var(--input-focus);
-            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
-        }
-
-        select {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 1rem center;
-            background-size: 1em;
-            padding-right: 2.5rem;
-        }
-
-        .detect-badge {
-            position: absolute;
-            right: 3rem;
-            font-size: 0.7rem;
-            padding: 0.2rem 0.5rem;
-            border-radius: 1rem;
-            background: rgba(139, 92, 246, 0.2);
-            color: #a78bfa;
-            opacity: 0;
-            transition: opacity 0.2s;
-            pointer-events: none;
-        }
-
-        [data-theme="light"] .detect-badge {
-            color: #7c3aed;
-        }
-
-        .detect-badge.show {
-            opacity: 1;
-        }
-
-        .icon-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            padding: 0.5rem;
-            border-radius: 0.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-        }
-
-        .icon-btn:hover {
-            background: rgba(156, 163, 175, 0.1);
-            color: var(--text-main);
-        }
-
-        .input-action {
-            position: absolute;
-            right: 0.5rem;
-        }
-
-        .primary-btn {
-            width: 100%;
-            background: var(--btn-bg);
-            color: var(--btn-text);
-            border: none;
-            padding: 1rem;
-            border-radius: 0.75rem;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .primary-btn:hover {
-            background: var(--btn-hover-bg);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
-        }
-
-        .primary-btn:active {
-            transform: translateY(1px);
-        }
-
-        .primary-btn:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .loader {
-            display: none;
-            width: 20px;
-            height: 20px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .btn-text.loading {
-            opacity: 0;
-        }
-        
-        .loader.loading {
-            display: block;
-            position: absolute;
-        }
-
-        /* Custom Provider Section */
-        #customProviderConfig {
-            display: none;
-            animation: slideDown 0.3s ease forwards;
-            padding: 1rem;
-            background: rgba(0,0,0,0.1);
-            border-radius: 0.75rem;
-            margin-top: -0.5rem;
-            margin-bottom: 1.25rem;
-            border: 1px solid var(--card-border);
-        }
-
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Result Section */
-        #resultCard {
-            display: none;
-            padding: 1.25rem;
-            border-radius: 0.75rem;
-            margin-top: 1.5rem;
-            border: 1px solid var(--card-border);
-            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .result-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 0.5rem;
-        }
-
-        .status-badge {
-            padding: 0.35rem 0.75rem;
-            border-radius: 2rem;
-            font-size: 0.875rem;
-            font-weight: 600;
-            text-transform: capitalize;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-        }
-
-        .status-badge::before {
-            content: '';
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-        }
-
-        .status-valid { background: var(--status-valid-bg); color: var(--status-valid-text); }
-        .status-valid::before { background: var(--status-valid-text); }
-        
-        .status-invalid { background: var(--status-invalid-bg); color: var(--status-invalid-text); }
-        .status-invalid::before { background: var(--status-invalid-text); }
-        
-        .status-restricted { background: var(--status-restricted-bg); color: var(--status-restricted-text); }
-        .status-restricted::before { background: var(--status-restricted-text); }
-        
-        .status-error { background: var(--status-error-bg); color: var(--status-error-text); }
-        .status-error::before { background: var(--status-error-text); }
-
-        .http-code {
-            font-family: monospace;
-            font-size: 0.875rem;
-            color: var(--text-muted);
-            background: rgba(0,0,0,0.2);
-            padding: 0.2rem 0.5rem;
-            border-radius: 0.25rem;
-        }
-
-        .result-msg {
-            color: var(--text-main);
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
-
-        /* History Section */
-        .history-section {
-            margin-top: 1rem;
-        }
-
-        .history-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            padding: 0 0.5rem;
-        }
-
-        .history-header h3 {
-            font-size: 1rem;
-            font-weight: 500;
-            color: var(--text-muted);
-        }
-
-        .clear-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-
-        .clear-btn:hover { color: var(--status-invalid-text); }
-
-        .history-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .history-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0.75rem 1rem;
-            background: rgba(0,0,0,0.1);
-            border-radius: 0.5rem;
-            border: 1px solid transparent;
-            transition: border-color 0.2s;
-            cursor: pointer;
-        }
-
-        .history-item:hover {
-            border-color: var(--card-border);
-            background: rgba(255,255,255,0.02);
-        }
-
-        .history-info {
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-        }
-
-        .history-provider {
-            font-weight: 500;
-            font-size: 0.9rem;
-        }
-
-        .history-key {
-            font-family: monospace;
-            color: var(--text-muted);
-            font-size: 0.8rem;
-        }
-
-        .history-status {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
+        .h-item:hover{border-color:var(--border);background:var(--glow)}
+        .h-name{font-size:.85rem;font-weight:500}
+        .h-key{font-family:monospace;font-size:.75rem;color:var(--text-faint)}
+        .h-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 
         /* Footer */
-        footer {
-            margin-top: 2rem;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 0.875rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-        
-        footer svg {
-            width: 16px;
-            height: 16px;
-            opacity: 0.7;
-        }
+        .foot{text-align:center;color:var(--text-faint);font-size:.78rem;display:flex;align-items:center;justify-content:center;gap:.4rem;margin-top:.25rem}
+        .foot svg{width:14px;height:14px;opacity:.5}
 
-        /* Toasts */
-        .toast-container {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            z-index: 50;
+        /* Toast */
+        .toasts{position:fixed;bottom:1.5rem;right:1.5rem;display:flex;flex-direction:column;gap:.5rem;z-index:99}
+        .toast{
+            background:var(--bg-dropdown);border:1px solid var(--border);color:var(--text);
+            padding:.6rem 1rem;border-radius:.5rem;font-size:.82rem;
+            box-shadow:0 4px 16px rgba(0,0,0,.2);backdrop-filter:blur(8px);
+            animation:tIn .25s ease;
         }
+        .toast.out{animation:tOut .2s ease forwards}
+        @keyframes tIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
+        @keyframes tOut{to{opacity:0;transform:translateX(16px)}}
 
-        .toast {
-            background: var(--card-bg);
-            backdrop-filter: blur(8px);
-            border: 1px solid var(--card-border);
-            color: var(--text-main);
-            padding: 0.75rem 1.25rem;
-            border-radius: 0.5rem;
-            font-size: 0.875rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        .hidden{display:none!important}
+
+        @media(max-width:600px){
+            body{padding:1rem .75rem;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+            .app{gap:.75rem}
+            .card{padding:1.25rem;border-radius:.85rem}
+            .logo{font-size:1.1rem;gap:.5rem}
+            .logo svg{width:20px;height:20px}
+            .dd-trigger{padding:.65rem .75rem;font-size:.85rem}
+            .dd-menu{max-height:220px}
+            .input-group input{padding:.65rem .75rem;padding-right:5rem;font-size:.85rem}
+            .submit-btn{padding:.7rem;font-size:.85rem}
+            .toasts{bottom:1rem;right:1rem;left:1rem}
+            .toast{text-align:center}
+            .custom-panel .row{flex-direction:column}
         }
-
-        .toast.hiding {
-            animation: toastOut 0.3s ease forwards;
+        @media(max-width:360px){
+            body{padding:.75rem .5rem}
+            .card{padding:1rem;border-radius:.75rem}
+            .logo{font-size:1rem}
+            .hdr{margin-bottom:1rem}
+            .dd-trigger{padding:.6rem .65rem}
+            .input-group input{font-size:.82rem}
         }
-
-        @keyframes toastIn {
-            from { opacity: 0; transform: translateX(20px); }
-            to { opacity: 1; transform: translateX(0); }
+        @media(min-width:601px) and (max-width:768px){
+            .app{max-width:480px}
         }
-
-        @keyframes toastOut {
-            from { opacity: 1; transform: translateX(0); }
-            to { opacity: 0; transform: translateX(20px); }
+        /* Touch-friendly on mobile */
+        @media(hover:none){
+            .dd-item{padding:.7rem .7rem}
+            .ico-btn{padding:6px}
+            .h-item{padding:.75rem}
         }
-
-        /* Utilities */
-        .hidden { display: none !important; }
-        
-        /* SVGs */
-        svg {
-            stroke: currentColor;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            fill: none;
+        /* Standalone PWA mode */
+        @media(display-mode:standalone){
+            body{padding-top:max(1rem, env(safe-area-inset-top))}
         }
     </style>
 </head>
 <body>
-
-    <svg width="0" height="0" class="hidden">
-        <linearGradient id="gradient-fill" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop stop-color="#8b5cf6" offset="0%" />
-            <stop stop-color="#3b82f6" offset="100%" />
-        </linearGradient>
-    </svg>
-
-    <div class="container">
-        <main class="glass-card">
-            <header>
-                <div class="title">
-                    <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+    <div class="app">
+        <main class="card">
+            <div class="hdr">
+                <div class="logo">
+                    <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
                     API Key Checker
                 </div>
-                <button id="themeToggle" class="icon-btn" aria-label="Toggle theme">
-                    <svg id="moonIcon" viewBox="0 0 24 24" width="20" height="20"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-                    <svg id="sunIcon" class="hidden" viewBox="0 0 24 24" width="20" height="20"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                <button class="theme-btn" id="themeBtn" aria-label="Toggle theme">
+                    <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+                    <svg id="iconSun" class="hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
                 </button>
-            </header>
+            </div>
 
-            <form id="checkForm">
-                <div class="form-group">
-                    <label for="provider">Provider</label>
-                    <select id="provider" required>
-                        <option value="" disabled selected>Select or auto-detect provider...</option>
-                        <!-- Options injected via JS -->
-                        <option value="custom">Custom Provider...</option>
-                    </select>
+            <form id="mainForm" autocomplete="off">
+                <!-- Custom Dropdown -->
+                <label class="lbl">Provider</label>
+                <div class="dropdown" id="dropdown">
+                    <div class="dd-trigger" id="ddTrigger" tabindex="0">
+                        <span class="selected-text placeholder" id="ddText">Select or auto-detect provider…</span>
+                        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                    </div>
+                    <div class="dd-menu" id="ddMenu">
+                        <input type="text" class="dd-search" id="ddSearch" placeholder="Search providers…" autocomplete="off">
+                        <div class="dd-list" id="ddList"></div>
+                    </div>
                 </div>
 
-                <div id="customProviderConfig">
-                    <div class="form-group">
-                        <label for="customUrl">Validation URL</label>
+                <!-- Custom Provider -->
+                <div class="custom-panel" id="customPanel">
+                    <div class="row">
                         <input type="url" id="customUrl" placeholder="https://api.example.com/v1/me">
                     </div>
-                    <div class="form-group">
-                        <label for="customAuth">Auth Header</label>
+                    <div class="row">
                         <select id="customAuth">
-                            <option value="bearer">Bearer {key}</option>
-                            <option value="basic">Basic {key}</option>
-                            <option value="header:x-api-key">x-api-key: {key}</option>
-                            <option value="query:key">Query param ?key={key}</option>
+                            <option value="bearer">Bearer token</option>
+                            <option value="basic">Basic auth</option>
+                            <option value="header:x-api-key">x-api-key header</option>
+                            <option value="query:key">Query parameter</option>
                         </select>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="apiKey">API Key</label>
-                    <div class="input-wrapper">
-                        <input type="password" id="apiKey" placeholder="Paste your API key here..." required autocomplete="off" spellcheck="false">
-                        <span id="detectBadge" class="detect-badge">OpenAI</span>
-                        <button type="button" id="toggleVisibility" class="icon-btn input-action" aria-label="Toggle visibility">
-                            <svg id="eyeIcon" viewBox="0 0 24 24" width="18" height="18"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                            <svg id="eyeOffIcon" class="hidden" viewBox="0 0 24 24" width="18" height="18"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                <!-- API Key Input -->
+                <label class="lbl">API Key</label>
+                <div class="input-group">
+                    <input type="password" id="keyInput" placeholder="Paste your API key…" autocomplete="off" spellcheck="false">
+                    <div class="input-actions">
+                        <span class="detect-pill" id="detectPill"></span>
+                        <button type="button" class="ico-btn" id="eyeBtn" aria-label="Toggle visibility">
+                            <svg id="eyeOn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            <svg id="eyeOff" class="hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
                         </button>
                     </div>
                 </div>
 
-                <button type="submit" id="submitBtn" class="primary-btn">
-                    <span class="btn-text">Validate Key</span>
-                    <div class="loader"></div>
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <span class="btn-label">Validate Key</span>
+                    <div class="spinner"></div>
                 </button>
             </form>
 
-            <div id="resultCard">
-                <div class="result-header">
-                    <div id="statusBadge" class="status-badge status-valid">Valid</div>
-                    <div style="display: flex; gap: 0.5rem; align-items: center;">
-                        <span id="httpCode" class="http-code">200 OK</span>
-                        <button id="copyResultBtn" class="icon-btn" style="padding: 0.25rem;" aria-label="Copy result">
-                            <svg viewBox="0 0 24 24" width="16" height="16"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <div class="result" id="resultCard">
+                <div class="result-top">
+                    <div id="statusBadge" class="badge badge-valid">Valid</div>
+                    <div class="result-meta">
+                        <span class="http-tag" id="httpCode">200</span>
+                        <button class="ico-btn" id="copyBtn" aria-label="Copy result">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
                         </button>
                     </div>
                 </div>
-                <p id="resultMsg" class="result-msg">Key is active and ready to use.</p>
+                <p class="result-msg" id="resultMsg"></p>
             </div>
         </main>
 
-        <section class="history-section hidden" id="historySection">
-            <div class="history-header">
+        <section class="card history hidden" id="historySection">
+            <div class="history-top">
                 <h3>Recent Checks</h3>
-                <button id="clearHistoryBtn" class="clear-btn">Clear</button>
+                <button class="clear-btn" id="clearBtn">Clear</button>
             </div>
-            <div class="history-list" id="historyList">
-                <!-- Items injected via JS -->
-            </div>
+            <div class="h-list" id="historyList"></div>
         </section>
 
-        <footer>
-            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-            Zero-log. Keys are never stored or logged on our servers.
+        <footer class="foot">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Zero-log · Keys are never stored
         </footer>
     </div>
 
-    <div class="toast-container" id="toastContainer"></div>
+    <div class="toasts" id="toasts"></div>
 
-    <script>
-        // --- State ---
-        let providers = [];
-        let history = JSON.parse(localStorage.getItem('apiKeyHistory') || '[]');
-        const MAX_HISTORY = 10;
+<script>
+// ── State ──
+let providers = [];
+let selectedProvider = null;
+let history = JSON.parse(localStorage.getItem('keyHistory') || '[]');
 
-        // --- DOM Elements ---
-        const html = document.documentElement;
-        const themeToggle = document.getElementById('themeToggle');
-        const sunIcon = document.getElementById('sunIcon');
-        const moonIcon = document.getElementById('moonIcon');
-        
-        const form = document.getElementById('checkForm');
-        const providerSelect = document.getElementById('provider');
-        const apiKeyInput = document.getElementById('apiKey');
-        const customProviderConfig = document.getElementById('customProviderConfig');
-        const detectBadge = document.getElementById('detectBadge');
-        
-        const toggleVisibilityBtn = document.getElementById('toggleVisibility');
-        const eyeIcon = document.getElementById('eyeIcon');
-        const eyeOffIcon = document.getElementById('eyeOffIcon');
-        
-        const submitBtn = document.getElementById('submitBtn');
-        const btnText = submitBtn.querySelector('.btn-text');
-        const loader = submitBtn.querySelector('.loader');
-        
-        const resultCard = document.getElementById('resultCard');
-        const statusBadge = document.getElementById('statusBadge');
-        const httpCode = document.getElementById('httpCode');
-        const resultMsg = document.getElementById('resultMsg');
-        const copyResultBtn = document.getElementById('copyResultBtn');
-        
-        const historySection = document.getElementById('historySection');
-        const historyList = document.getElementById('historyList');
-        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
-        const toastContainer = document.getElementById('toastContainer');
+// ── Elements ──
+const $ = id => document.getElementById(id);
+const html = document.documentElement;
+const themeBtn = $('themeBtn'), iconMoon = $('iconMoon'), iconSun = $('iconSun');
+const ddTrigger = $('ddTrigger'), ddText = $('ddText'), ddMenu = $('ddMenu'), ddSearch = $('ddSearch'), ddList = $('ddList');
+const customPanel = $('customPanel'), customUrl = $('customUrl'), customAuth = $('customAuth');
+const keyInput = $('keyInput'), detectPill = $('detectPill'), eyeBtn = $('eyeBtn'), eyeOn = $('eyeOn'), eyeOff = $('eyeOff');
+const form = $('mainForm'), submitBtn = $('submitBtn');
+const resultCard = $('resultCard'), statusBadge = $('statusBadge'), httpCode = $('httpCode'), resultMsg = $('resultMsg'), copyBtn = $('copyBtn');
+const historySection = $('historySection'), historyList = $('historyList'), clearBtn = $('clearBtn');
 
-        // --- Initialization ---
-        async function init() {
-            // Theme setup
-            const savedTheme = localStorage.getItem('theme') || 'dark';
-            setTheme(savedTheme);
+// ── Init ──
+(async () => {
+    setTheme(localStorage.getItem('theme') || 'dark');
+    try {
+        const r = await fetch('/api/providers');
+        if (r.ok) providers = await r.json();
+    } catch {}
+    buildDropdown();
+    renderHistory();
+})();
 
-            // Fetch providers
-            try {
-                const res = await fetch('/api/providers');
-                if (res.ok) {
-                    providers = await res.json();
-                }
-            } catch (e) {
-                console.warn('Could not fetch providers — is the server running?');
-            }
+// ── Theme ──
+function setTheme(t) {
+    html.dataset.theme = t; localStorage.setItem('theme', t);
+    iconMoon.classList.toggle('hidden', t === 'light');
+    iconSun.classList.toggle('hidden', t === 'dark');
+}
+themeBtn.onclick = () => setTheme(html.dataset.theme === 'dark' ? 'light' : 'dark');
 
-            populateProviders();
-            renderHistory();
+// ── Custom Dropdown ──
+const CATEGORIES = {
+    'AI & LLM': ['openai','anthropic','gemini','groq','mistral','openrouter','huggingface','cohere','together','deepseek','xai','fireworks','replicate','stability'],
+    'DevOps & Cloud': ['github','gitlab','cloudflare','vercel','netlify','digitalocean','heroku','npm'],
+    'Communication': ['slack','discord','telegram','elevenlabs','deepgram','assemblyai','sendgrid','mailgun','postmark','resend','twilio'],
+    'Data & APIs': ['stripe','notion','airtable','pinecone','datadog','sentry','googlemaps','virustotal','shodan','openweather','newsapi','mapbox']
+};
+
+function buildDropdown() {
+    ddList.innerHTML = '';
+    const categorized = new Set();
+    for (const [cat, ids] of Object.entries(CATEGORIES)) {
+        const items = providers.filter(p => ids.includes(p.id));
+        if (!items.length) continue;
+        const hdr = document.createElement('div');
+        hdr.className = 'dd-divider';
+        hdr.textContent = cat;
+        ddList.appendChild(hdr);
+        items.forEach(p => { addItem(p); categorized.add(p.id); });
+    }
+    // Uncategorized
+    const rest = providers.filter(p => !categorized.has(p.id));
+    if (rest.length) {
+        const hdr = document.createElement('div');
+        hdr.className = 'dd-divider';
+        hdr.textContent = 'Other';
+        ddList.appendChild(hdr);
+        rest.forEach(addItem);
+    }
+    // Custom option
+    const div = document.createElement('div');
+    div.className = 'dd-divider';
+    div.textContent = '──';
+    ddList.appendChild(div);
+    const custom = document.createElement('div');
+    custom.className = 'dd-item';
+    custom.dataset.id = 'custom';
+    custom.innerHTML = '<span class="dot"></span>Custom Provider…';
+    custom.onclick = () => selectItem('custom', 'Custom Provider…');
+    ddList.appendChild(custom);
+}
+
+function addItem(p) {
+    const el = document.createElement('div');
+    el.className = 'dd-item';
+    el.dataset.id = p.id;
+    el.dataset.name = p.name.toLowerCase();
+    el.innerHTML = `<span class="dot"></span>${p.name}`;
+    el.onclick = () => selectItem(p.id, p.name);
+    ddList.appendChild(el);
+}
+
+function selectItem(id, name) {
+    selectedProvider = id;
+    ddText.textContent = name;
+    ddText.classList.remove('placeholder');
+    closeDropdown();
+    ddList.querySelectorAll('.dd-item').forEach(el => el.classList.toggle('active', el.dataset.id === id));
+    customPanel.classList.toggle('show', id === 'custom');
+    resultCard.classList.remove('show');
+}
+
+function openDropdown() {
+    ddMenu.classList.add('show');
+    ddTrigger.classList.add('open');
+    ddSearch.value = '';
+    filterItems('');
+    setTimeout(() => ddSearch.focus(), 50);
+}
+function closeDropdown() {
+    ddMenu.classList.remove('show');
+    ddTrigger.classList.remove('open');
+}
+
+ddTrigger.onclick = () => ddMenu.classList.contains('show') ? closeDropdown() : openDropdown();
+ddTrigger.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDropdown(); }};
+ddSearch.oninput = e => filterItems(e.target.value.toLowerCase());
+
+function filterItems(q) {
+    let any = false;
+    ddList.querySelectorAll('.dd-item').forEach(el => {
+        const match = !q || (el.dataset.name && el.dataset.name.includes(q)) || el.dataset.id === 'custom';
+        el.classList.toggle('hidden', !match);
+        if (match) any = true;
+    });
+    ddList.querySelectorAll('.dd-divider').forEach(el => {
+        let next = el.nextElementSibling;
+        let hasVisible = false;
+        while (next && !next.classList.contains('dd-divider')) {
+            if (!next.classList.contains('hidden')) hasVisible = true;
+            next = next.nextElementSibling;
         }
+        el.style.display = hasVisible ? '' : 'none';
+    });
+}
 
-        // --- Core Functions ---
-        function setTheme(theme) {
-            html.setAttribute('data-theme', theme);
-            localStorage.setItem('theme', theme);
-            if (theme === 'dark') {
-                moonIcon.classList.remove('hidden');
-                sunIcon.classList.add('hidden');
-            } else {
-                sunIcon.classList.remove('hidden');
-                moonIcon.classList.add('hidden');
-            }
-        }
+document.addEventListener('click', e => { if (!ddTrigger.contains(e.target) && !ddMenu.contains(e.target)) closeDropdown(); });
 
-        function populateProviders() {
-            // Keep the first default option
-            const defaultOpt = providerSelect.options[0];
-            const customOpt = providerSelect.querySelector('option[value="custom"]');
-            
-            providerSelect.innerHTML = '';
-            providerSelect.appendChild(defaultOpt);
-            
-            providers.forEach(p => {
-                const opt = document.createElement('option');
-                opt.value = p.id;
-                opt.textContent = p.name;
-                providerSelect.appendChild(opt);
-            });
-            
-            providerSelect.appendChild(customOpt);
-        }
+// ── Eye Toggle ──
+eyeBtn.onclick = () => {
+    const show = keyInput.type === 'password';
+    keyInput.type = show ? 'text' : 'password';
+    eyeOn.classList.toggle('hidden', show);
+    eyeOff.classList.toggle('hidden', !show);
+};
 
-        function maskKey(key) {
-            if (!key) return '';
-            if (key.length <= 8) return '***';
-            return key.substring(0, 4) + '...' + key.substring(key.length - 4);
-        }
-
-        function renderHistory() {
-            if (history.length === 0) {
-                historySection.classList.add('hidden');
+// ── Auto-detect ──
+keyInput.oninput = () => {
+    const v = keyInput.value.trim();
+    if (!v) { detectPill.classList.remove('show'); return; }
+    for (const p of providers) {
+        if (p.prefix) {
+            try { if (new RegExp(p.prefix).test(v)) {
+                detectPill.textContent = p.name; detectPill.classList.add('show');
+                if (selectedProvider !== 'custom') selectItem(p.id, p.name);
                 return;
-            }
-            historySection.classList.remove('hidden');
-            historyList.innerHTML = '';
-            
-            history.forEach((item, index) => {
-                const el = document.createElement('div');
-                el.className = 'history-item';
-                
-                // Determine color
-                let colorVar = '--status-valid-text';
-                if(item.status === 'invalid') colorVar = '--status-invalid-text';
-                else if(item.status === 'restricted') colorVar = '--status-restricted-text';
-                else if(item.status === 'error') colorVar = '--status-error-text';
-
-                el.innerHTML = `
-                    <div class="history-info">
-                        <span class="history-provider">${item.providerName}</span>
-                        <span class="history-key">${maskKey(item.key)}</span>
-                    </div>
-                    <div class="history-status" style="background-color: var(${colorVar})" title="${item.status}"></div>
-                `;
-                
-                el.addEventListener('click', () => {
-                    providerSelect.value = item.providerId;
-                    apiKeyInput.value = item.key;
-                    providerSelect.dispatchEvent(new Event('change'));
-                });
-                
-                historyList.appendChild(el);
-            });
+            }} catch {}
         }
+    }
+    detectPill.classList.remove('show');
+};
 
-        function addToHistory(record) {
-            history.unshift(record);
-            if (history.length > MAX_HISTORY) history.pop();
-            localStorage.setItem('apiKeyHistory', JSON.stringify(history));
-            renderHistory();
-        }
+// ── Submit ──
+form.onsubmit = async e => {
+    e.preventDefault();
+    const key = keyInput.value.trim();
+    if (!selectedProvider || !key) return;
 
-        function showToast(msg) {
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.textContent = msg;
-            toastContainer.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.classList.add('hiding');
-                toast.addEventListener('animationend', () => toast.remove());
-            }, 3000);
-        }
+    submitBtn.classList.add('loading'); submitBtn.disabled = true;
+    resultCard.classList.remove('show');
 
-        // --- Event Listeners ---
-        themeToggle.addEventListener('click', () => {
-            const cur = html.getAttribute('data-theme');
-            setTheme(cur === 'dark' ? 'light' : 'dark');
-        });
+    let payload = { provider: selectedProvider, key };
+    if (selectedProvider === 'custom') {
+        payload.custom = { url: customUrl.value.trim(), auth: customAuth.value };
+    }
 
-        toggleVisibilityBtn.addEventListener('click', () => {
-            if (apiKeyInput.type === 'password') {
-                apiKeyInput.type = 'text';
-                eyeIcon.classList.add('hidden');
-                eyeOffIcon.classList.remove('hidden');
-            } else {
-                apiKeyInput.type = 'password';
-                eyeOffIcon.classList.add('hidden');
-                eyeIcon.classList.remove('hidden');
-            }
-        });
+    let result;
+    try {
+        const r = await fetch('/api/validate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        result = await r.json();
+    } catch {
+        result = { status: 'error', code: 0, message: 'Cannot reach server. Is the app deployed on a Node.js host?' };
+    }
 
-        providerSelect.addEventListener('change', () => {
-            if (providerSelect.value === 'custom') {
-                customProviderConfig.style.display = 'block';
-                document.getElementById('customUrl').required = true;
-            } else {
-                customProviderConfig.style.display = 'none';
-                document.getElementById('customUrl').required = false;
-            }
-            resultCard.style.display = 'none';
-        });
+    submitBtn.classList.remove('loading'); submitBtn.disabled = false;
 
-        apiKeyInput.addEventListener('input', (e) => {
-            const val = e.target.value.trim();
-            if (!val) {
-                detectBadge.classList.remove('show');
-                return;
-            }
+    statusBadge.className = 'badge badge-' + result.status;
+    statusBadge.textContent = result.status.charAt(0).toUpperCase() + result.status.slice(1);
+    httpCode.textContent = result.code || '—';
+    resultMsg.textContent = result.message;
+    resultCard.classList.add('show');
 
-            // Auto-detect
-            let detected = null;
-            for (const p of providers) {
-                if (p.prefix) {
-                    try {
-                        const regex = new RegExp(p.prefix);
-                        if (regex.test(val)) {
-                            detected = p;
-                            break;
-                        }
-                    } catch (err) {} // ignore invalid regex
-                }
-            }
+    const pName = selectedProvider === 'custom' ? 'Custom' : (providers.find(p => p.id === selectedProvider)?.name || selectedProvider);
+    history.unshift({ pid: selectedProvider, name: pName, key, status: result.status, ts: Date.now() });
+    if (history.length > 10) history.pop();
+    localStorage.setItem('keyHistory', JSON.stringify(history));
+    renderHistory();
+};
 
-            if (detected) {
-                detectBadge.textContent = detected.name;
-                detectBadge.classList.add('show');
-                if (providerSelect.value !== 'custom') {
-                    providerSelect.value = detected.id;
-                    providerSelect.dispatchEvent(new Event('change'));
-                }
-            } else {
-                detectBadge.classList.remove('show');
-            }
-            resultCard.style.display = 'none';
-        });
+// ── Copy ──
+copyBtn.onclick = () => {
+    navigator.clipboard.writeText(`${statusBadge.textContent} (${httpCode.textContent})\n${resultMsg.textContent}`);
+    toast('Copied to clipboard');
+};
 
-        clearHistoryBtn.addEventListener('click', () => {
-            history = [];
-            localStorage.removeItem('apiKeyHistory');
-            renderHistory();
-            showToast('History cleared');
-        });
+// ── History ──
+function renderHistory() {
+    if (!history.length) { historySection.classList.add('hidden'); return; }
+    historySection.classList.remove('hidden');
+    historyList.innerHTML = '';
+    history.forEach(h => {
+        const el = document.createElement('div');
+        el.className = 'h-item';
+        const colors = { valid: 'var(--valid)', invalid: 'var(--invalid)', restricted: 'var(--restricted)', error: 'var(--info)' };
+        const masked = h.key.length > 8 ? h.key.slice(0, 4) + '…' + h.key.slice(-4) : '***';
+        el.innerHTML = `<div><div class="h-name">${h.name}</div><div class="h-key">${masked}</div></div><div class="h-dot" style="background:${colors[h.status]||colors.error}"></div>`;
+        el.onclick = () => { selectItem(h.pid, h.name); keyInput.value = h.key; };
+        historyList.appendChild(el);
+    });
+}
+clearBtn.onclick = () => { history = []; localStorage.removeItem('keyHistory'); renderHistory(); toast('History cleared'); };
 
-        copyResultBtn.addEventListener('click', () => {
-            const text = `${statusBadge.textContent} - ${httpCode.textContent}\n${resultMsg.textContent}`;
-            navigator.clipboard.writeText(text).then(() => {
-                showToast('Result copied to clipboard');
-            });
-        });
+// ── Toast ──
+function toast(msg) {
+    const el = document.createElement('div');
+    el.className = 'toast'; el.textContent = msg;
+    $('toasts').appendChild(el);
+    setTimeout(() => { el.classList.add('out'); el.onanimationend = () => el.remove(); }, 2500);
+}
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const providerId = providerSelect.value;
-            const key = apiKeyInput.value.trim();
-            
-            if (!providerId || !key) return;
-
-            // UI Loading state
-            submitBtn.disabled = true;
-            btnText.classList.add('loading');
-            loader.classList.add('loading');
-            resultCard.style.display = 'none';
-
-            let payload = { provider: providerId, key };
-            
-            if (providerId === 'custom') {
-                payload.custom = {
-                    url: document.getElementById('customUrl').value.trim(),
-                    auth: document.getElementById('customAuth').value
-                };
-            }
-
-            let result;
-            try {
-                const res = await fetch('/api/validate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                result = await res.json();
-            } catch (err) {
-                result = {
-                    status: 'error',
-                    code: 0,
-                    message: 'Cannot reach the server. Make sure the app is deployed on a Node.js host (not GitHub Pages).'
-                };
-            }
-
-            // Reset loading state
-            submitBtn.disabled = false;
-            btnText.classList.remove('loading');
-            loader.classList.remove('loading');
-
-            // Show result
-            resultCard.style.display = 'block';
-            
-            // Apply status styling
-            statusBadge.className = `status-badge status-${result.status}`;
-            statusBadge.textContent = result.status;
-            
-            httpCode.textContent = result.code ? (result.code + (result.code === 200 ? ' OK' : '')) : 'ERR';
-            resultMsg.textContent = result.message;
-
-            // Save to history
-            const pName = providerId === 'custom' ? 'Custom' : (providers.find(p => p.id === providerId)?.name || providerId);
-            addToHistory({
-                providerId,
-                providerName: pName,
-                key: key,
-                status: result.status,
-                timestamp: Date.now()
-            });
-        });
-
-        // Start
-        init();
-    </script>
+// ── Service Worker (PWA) ──
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+</script>
 </body>
 </html>

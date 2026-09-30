@@ -1,0 +1,25 @@
+{
+  "name": "API Key Checker",
+  "short_name": "Key Checker",
+  "description": "Zero-log API key validator. Supports 45+ providers.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#06060b",
+  "theme_color": "#7c5cfc",
+  "orientation": "any",
+  "categories": ["developer", "utilities"],
+  "icons": [
+    {
+      "src": "/icons/icon-512.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "maskable"
+    }
+  ]
+}
