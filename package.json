@@ -1,0 +1,14 @@
+{
+  "name": "api-key-checker",
+  "version": "2.0.0",
+  "description": "Zero-log API key validator - improved UI",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "MIT"
+}

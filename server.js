@@ -56,5 +56,8 @@ http.createServer((req, res) => {
     return;
   }
   if (req.url === "/api/providers") return json(PROVIDERS.map(({ id, name, prefix }) => ({ id, name, prefix })));
-  fs.readFile(path.join(__dirname, "index.html"), (e, d) => { res.writeHead(e ? 500 : 200, { "Content-Type": "text/html; charset=utf-8" }); res.end(e ? "Error" : d); });
+  const pub = path.join(__dirname, "public", "index.html");
+  const root = path.join(__dirname, "index.html");
+  const file = fs.existsSync(pub) ? pub : root;
+  fs.readFile(file, (e, d) => { res.writeHead(e ? 500 : 200, { "Content-Type": "text/html; charset=utf-8" }); res.end(e ? "Error" : d); });
 }).listen(process.env.PORT || 3000, () => console.log("Key checker at http://localhost:" + (process.env.PORT || 3000)));
